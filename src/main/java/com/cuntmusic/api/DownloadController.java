@@ -21,14 +21,14 @@ public class DownloadController {
     @Value("${spring.application.tracksPath}")
     private String tracksPath;
 
-    @GetMapping("/download/{ID}")
-    public ResponseEntity<Resource> download(@PathVariable String ID) {
+    @GetMapping("/download/{ID}.{Type}")
+    public ResponseEntity<Resource> download(@PathVariable String ID, @PathVariable String Type) {
         try {
-            Path filePath = Paths.get(tracksPath).resolve(ID + "/track.webm").normalize();
+            Path filePath = Paths.get(tracksPath).resolve(ID + "/track." + Type).normalize();
             Resource r = new UrlResource(filePath.toUri());
             if (r.exists() || r.isReadable()) {
                 return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=\"" + r.getFilename() + "\"")
+                    .header("Content-Disposition", "attachment; filename=\"" + ID + "." + Type + "\"")
                     .body(r);
             }
             
