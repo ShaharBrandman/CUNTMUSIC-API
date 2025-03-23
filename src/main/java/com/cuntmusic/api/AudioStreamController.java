@@ -55,6 +55,11 @@ public class AudioStreamController {
 
     @GetMapping("/stream/{ID}")
     public ResponseEntity<InputStreamResource> streamAudio(@PathVariable final String ID) throws IOException, FileNotFoundException, InterruptedException {
+        //validing user input
+        if (ID.length() != 11) {
+            return ResponseEntity.notFound().build();
+        }
+
         String filePath = tracksPath + ID + "/" + trackFileName;
         System.out.println(filePath);
         File audioFile = new File(filePath);
