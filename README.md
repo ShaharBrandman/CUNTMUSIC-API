@@ -8,7 +8,7 @@
 ```
 CREATE TABLE Users (
     ID SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
+    username text NOT NULL UNIQUE,
     password CHAR(64) NOT NULL,                     -- Store the password hash (64 chars for SHA256)
     TokenIssueDate TIMESTAMP  NOT NULL,             -- Timestamp for when the JWT token was issued
     TokenExpireDate TIMESTAMP  NOT NULL             -- Timestamp for when the JWT token expires
@@ -31,7 +31,7 @@ VALUES (
 CREATE TABLE Playlists (
     PlaylistID SERIAL PRIMARY KEY,
     UsernameID INT REFERENCES Users(ID) ON DELETE CASCADE NOT NULL UNIQUE,              -- Foreign key from Users table
-    PlaylistName VARCHAR(255) NOT NULL
+    PlaylistName text NOT NULL
 );
 ```
 
@@ -48,17 +48,19 @@ VALUES (
 ```
 CREATE TABLE Songs (
     SongID VARCHAR(11) PRIMARY KEY NOT NULL UNIQUE,
-    Title VARCHAR(255) NOT NULL,
+    Title text NOT NULL,
+    Author text NUL NULL,
     Path text NOT NULL UNIQUE
 );
 ```
 
 Example for inserting value into Songs
 ```
-INSERT INTO Songs (SongID, Title, Path)
+INSERT INTO Songs (SongID, Title, Author, Path)
 VALUES(
     'DEEL9nvxwsc',
     'Dove Cameron - Too Much (Official Visualizer)',
+    'Dove Cameron',
     'home/cuntmusic/fs/DEEL9nvxwsc'
 );
 ```
@@ -105,11 +107,11 @@ SELECT
     S.SongID,
     S.Title
 FROM
-    PlaylistSongs PS
+    Songs S
 JOIN
-    Songs S ON PS.SongID = S.SongID
+    PlaylistSongs PS ON PS.SongID = S.SongID
 JOIN
-    Playlists P ON PS.PlaylistID = P.PlaylistID
+    Playlists P ON P.PlaylistID = PS.PlaylistID
 WHERE
     P.PlaylistName = 'Test Songs';
 ```
