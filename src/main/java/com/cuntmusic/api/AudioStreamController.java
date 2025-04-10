@@ -33,7 +33,7 @@ public class AudioStreamController {
     @Value("${spring.application.trackFileName}")
     private String trackFileName;
 
-    private boolean downloadTrack(final String ID) throws InterruptedException, NullPointerException, IOException {
+    private boolean downloadNewTrack(final String ID, final File tmpFile) throws InterruptedException, NullPointerException, IOException {
         Process p = Runtime.getRuntime().exec(new String[]{"bash", scriptsPath, ID});
         Thread t = new Thread(() -> {
             int exitCode = 1;
@@ -50,34 +50,40 @@ public class AudioStreamController {
         t.start();
         t.join();
 
-        return new File(tracksPath + ID).exists();
+        return tmpFile.exists();
     }
+        @GetMapping("/stream/{ID}")
+        public ResponseEntity<InputStreamResource> streamAudio(@PathVariable final String ID) throws IOException, FileNotFoundException, InterruptedException {
+            //validing user input
+            if (ID.length() != 11) {
+                return ResponseEntity.notFound().build();
+            }
+    
+            String filePath = tracksPath + ID + "/" + trackFileName;
+            System.out.println(filePath);
+            File audioFile = new File(filePath);
+    
+            if (!audioFile.exists()) {
+                System.out.println("wtf bro");
+                if (!downloadNewTrack(ID, audioFile)) {
+                    System.out.println("not found");
+                    return ResponseEntity.notFound().build();
+                }
+                /*
+                 * HERE IT SHOULD ADD THE NEW SONG TO THE SQL DB
+                 */
+            }
+    
+            FileInputStream audioStream = new FileInputStream(audioFile);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + ID + "/" + trackFileName);
+            headers.add(HttpHeaders.CONTENT_TYPE, MediaType.valueOf("audio/m4a").toString());
+    
+            InputStreamResource resource = new InputStreamResource(audioStream);
 
-    @GetMapping("/stream/{ID}")
-    public ResponseEntity<InputStreamResource> streamAudio(@PathVariable final String ID) throws IOException, FileNotFoundException, InterruptedException {
-        //validing user input
-        if (ID.length() != 11) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(audioFile.length())
+                .body(resource);
         }
-
-        String filePath = tracksPath + ID + "/" + trackFileName;
-        System.out.println(filePath);
-        File audioFile = new File(filePath);
-
-        if (!audioFile.exists() && !downloadTrack(ID)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        FileInputStream audioStream = new FileInputStream(audioFile);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + ID + "/" + trackFileName);
-        headers.add(HttpHeaders.CONTENT_TYPE, MediaType.valueOf("video/webm").toString());
-
-        InputStreamResource resource = new InputStreamResource(audioStream);
-
-        return ResponseEntity.ok()
-            .headers(headers)
-            .contentLength(audioFile.length())
-            .body(resource);
-    }
 }

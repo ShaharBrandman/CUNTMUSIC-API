@@ -21,14 +21,13 @@ public class DownloadController {
     @Value("${spring.application.tracksPath}")
     private String tracksPath;
 
-    @GetMapping("/download/{ID}.{Type}")
-    public ResponseEntity<Resource> download(@PathVariable String ID, @PathVariable String Type) {
+    private ResponseEntity<Resource> download(String filePath) {
         try {
-            Path filePath = Paths.get(tracksPath).resolve(ID + "/track." + Type).normalize();
-            Resource r = new UrlResource(filePath.toUri());
+            Path p = Paths.get(tracksPath).resolve(filePath).normalize();
+            Resource r = new UrlResource(p.toUri());
             if (r.exists() || r.isReadable()) {
                 return ResponseEntity.ok()
-                    .header("Content-Disposition", "attachment; filename=\"" + ID + "." + Type + "\"")
+                    .header("Content-Disposition", "attachment; filename=\"" + p.getFileName() + "\"")
                     .body(r);
             }
             
@@ -37,5 +36,17 @@ public class DownloadController {
         catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    //custom feature for subtuiel
+    // @GetMapping("/download/{ID}.{Lang}.vtt")
+    // public ResponseEntity<Resource> subtitlesDownload(@PathVariable String ID, @PathVariable String Lang) {
+    //     return download(ID + "/track." + Lang + ".vtt");
+    // }
+
+    //designed to handle .m4a, .webp
+    @GetMapping("/download/{ID}.{Type}")
+    public ResponseEntity<Resource> simpleDownload(@PathVariable String ID, @PathVariable String Type) {
+        return download(ID + "/track." + Type);
     }
 }
