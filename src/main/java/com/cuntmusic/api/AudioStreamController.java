@@ -38,9 +38,7 @@ public class AudioStreamController {
         Thread t = new Thread(() -> {
             int exitCode = 1;
             try {
-                while(exitCode != 0) {
-                    exitCode = p.waitFor();
-                }
+                while(exitCode != 0) exitCode = p.waitFor();
             }
             catch(InterruptedException e) {
                 e.printStackTrace();
@@ -58,15 +56,12 @@ public class AudioStreamController {
             if (ID.length() != 11) {
                 return ResponseEntity.notFound().build();
             }
-    
+            
             String filePath = tracksPath + ID + "/" + trackFileName;
-            System.out.println(filePath);
             File audioFile = new File(filePath);
     
             if (!audioFile.exists()) {
-                System.out.println("wtf bro");
                 if (!downloadNewTrack(ID, audioFile)) {
-                    System.out.println("not found");
                     return ResponseEntity.notFound().build();
                 }
                 /*
@@ -74,12 +69,13 @@ public class AudioStreamController {
                  */
             }
     
-            FileInputStream audioStream = new FileInputStream(audioFile);
+            //creating the HTTP headers for the audio stream
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + ID + "/" + trackFileName);
             headers.add(HttpHeaders.CONTENT_TYPE, MediaType.valueOf("audio/m4a").toString());
-    
-            InputStreamResource resource = new InputStreamResource(audioStream);
+            
+            //creating the audio stream and injecting it into the HTTP resource
+            InputStreamResource resource = new InputStreamResource(new FileInputStream(audioFile));
 
             return ResponseEntity.ok()
                 .headers(headers)
