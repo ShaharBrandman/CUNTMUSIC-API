@@ -46,7 +46,7 @@ public class DownloadController {
 
     //designed to handle .m4a, .webp
     @GetMapping("/download/{ID}.{Type}")
-    public ResponseEntity<Resource> simpleDownload(@PathVariable String ID, @PathVariable String Type) {
+    public ResponseEntity<Resource> simpleDownloader(@PathVariable String ID, @PathVariable String Type) {
         return download(ID + "/track." + Type);
     }
 }
